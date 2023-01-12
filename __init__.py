@@ -3,6 +3,20 @@ from adapt.intent import IntentBuilder
 from mycroft.skills.context import removes_context
 #import pandas as pd
 
+
+def generate_str(possible_list):
+    res = ''
+    if len(possible_list) == 3:
+        res = possible_list[0] + ' ' + \
+           possible_list[1] + ' and ' + possible_list[2]
+    elif len(possible_list) == 2:
+        res = possible_list[0] + ' and ' + possible_list[1]
+    elif len(possible_list) == 1:
+        res = possible_list[0]
+
+    return res
+        
+
 class EasyShopping(MycroftSkill):
     def __init__(self):
         MycroftSkill.__init__(self)
