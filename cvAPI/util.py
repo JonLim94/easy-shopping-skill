@@ -3,7 +3,7 @@ from requests import Session
 import io
 import base64
 
-API_KEY = 'xxxxxxxx'
+API_KEY = 'xxxxxxxxx'
 
 def encode_image_from_file(file_name):
     with io.open(file_name, 'rb') as image_file:
