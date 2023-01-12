@@ -1,9 +1,44 @@
 from mycroft import MycroftSkill, intent_file_handler, intent_handler
 from adapt.intent import IntentBuilder
 from mycroft.skills.context import removes_context
-#import pandas as pd
+from mycroft.util import LOG
+import time
+import cv2
+import os
+import sys
+from multiprocessing import Process, Queue
+sys.path.append('/home/ai-user/mycroft-core/skills/easy-shopping-skill/cvAPI') # update path if necessary
+from util import callAPI, encode_image_from_file
+import getObjLabel, getDetail
 
 
+def take_photo(img_queue):
+    '''
+    Do taking photo
+    '''
+    LOG.info(LOGSTR + 'take photo process start')
+    cap = cv2.VideoCapture(0)
+    img_name = 'cap_img_' + str(time.time()) + '.jpg'
+    img_path = '/home/ai-user/Documents/' + img_name # Remember to update path to image
+
+    #<-- Take photo in specific time duration -->
+    cout = 0
+    while True:
+        ret, frame = cap.read()
+        cv2.waitKey(1)
+        cv2.imshow('capture', frame)
+        cout += 1 
+        if cout == 50:
+            img_queue.put(img_path)
+            cv2.imwrite(img_path, frame)
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+    LOG.info(LOGSTR + 'take photo process end')
+    os._exit(0)
+    
+    
 def generate_str(possible_list):
     res = ''
     if len(possible_list) == 3:
@@ -31,7 +66,7 @@ class EasyShopping(MycroftSkill):
     
         # suppose we use camera to take a photo here, 
         # then the function will return an image path
-        self.img_hand = 'Path_To_Image/2.jpeg'
+        self.img_hand = '/home/ai-user/mycroft-core/skills/test/2.jpeg'
 
         # suppose we call CV API here to get the result, 
         # the result will all be list, then we use generate_str() to create string
@@ -147,9 +182,19 @@ class EasyShopping(MycroftSkill):
 #        self.img_multi = ''
 #        self.img_hand = ''
 
+    # step 1.2: create another process to do the photo taking
+#        img_queue = Queue()
+#        take_photo_process = Process(target=take_photo, args=(img_queue,))
+#        take_photo_process.daemon = True
+#        take_photo_process.start()
+#        take_photo_process.join()
+#        self.img_multi = img_queue.get()
+
+#        self.speak('I find some goods here, you can ask me whatever goods you want.', expect_response=True)
+
     # suppose we use camera to take a photo here, 
     # then the function will return an image path
-#    self.img_multi = 'Path_To_Image/multi.jpeg'
+#    self.img_multi = '/home/ai-user/mycroft-core/skills//test/multi.jpeg'
 
 #    self.speak('I find some goods here, you can ask me whatever goods you want.')
 
@@ -157,33 +202,50 @@ class EasyShopping(MycroftSkill):
 #    @intent_handler('is.there.any.goods.intent')
 #    def handle_is_there_any_goods(self, message):
 #        if self.img_multi == '':
-         # if self.img_multi =='' then it means the user hasn't invoked intent(handle_view_goods)
-#             self.handle_no_context1(message)
-#         else:
-         # in real application, label_str and loc_list will return from CV API
-#        label_list = [['milk', 'drink', 'bottle'], ['milk', 'drink', 'bottle']]
-#        loc_list = ['left top', 'right top']
+#            self.handle_no_context1(message)
+#        else:
+            # use try-catch block here, since there maybe error return from the cv api
+#            try:        
+#                self.log.info(LOGSTR + 'actual img path')
+#                self.log.info(self.img_multi)
+#                if MODE == 'TEST':
+#                    self.log.info(LOGSTR + 'testing mode, use another image')
+#                    self.img_multi = 'P/home/ai-user/mycroft-core/skills/test/multi.jpeg' # e.g. self.img_multi = '/home/ai-user/mycroft-core/skills/easy-shopping-skill/cvAPI/test/photo/multi.jpeg'
 
-#        category_label = message.data.get('category')
-#        detected = 0
+ #               objectlist = getObjLabel.getObjectsThenLabel(self.img_multi)
+ #               label_list = []
+ #               loc_list = []
+ #               detected = 0
 
-#        for i in range(len(label_list)):
-#            label_str = generate_str(label_list[i])
-#            label_str = label_str.lower()
+ #               category_label = message.data.get('category')
+    
+#                for obj in objectlist['objectList']:
+#                    label_list.append(obj['name'])
+#                    loc_list.append(obj['loc'])
+            
+        
+#                for i in range(0,len(label_list)):
+#                    label_str = generate_str(label_list[i])
+#                    label_str = label_str.lower()
+            
+#                    if category_label is not None:
+#                        if category_label in label_str:
+#                            self.speak_dialog('yes.goods',
+#                                        {'category': category_label,
+ #                                       'location': loc_list[i]})
+ #                           detected = 1
+ #                           break
+#                    else:
+#                        continue
+    
+#                if detected == 0:
+#                    self.speak_dialog('no.goods',
+#                    {'category': category_label})
 
-#            if category_label is not None:
-#                if category_label in label_str:
-#                    self.speak_dialog('yes.goods',
-#                                {'category': category_label,
-#                                'location': loc_list[i]})
-#                    detected = 1
-#                   break
-#           else:
-#                continue
-
-#        if detected == 0:
-#            self.speak_dialog('no.goods',
-#            {'category': category_label})
+#            except Exception as e:
+#                self.log.error((LOGSTR + "Error: {0}").format(e))
+#                self.speak_dialog(
+#                "exception", {"action": "calling computer vision API"})
 
 
 # firstly create do.you.want.to.take.a.photo.dialog 
